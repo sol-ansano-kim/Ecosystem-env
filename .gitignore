@@ -1,0 +1,10 @@
+index.json
+/arnold/abcproc
+/arnold/agShadingBlocks
+/lib/alembic*
+/lib/boost*
+/lib/hdf5*
+/lib/ilmbase*
+/lib/szip*
+/lib/zlib*
+/downloads

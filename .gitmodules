@@ -1,0 +1,3 @@
+[submodule "Ecosystem"]
+	path = Ecosystem
+	url = git://github.com/gatgui/Ecosystem.git
