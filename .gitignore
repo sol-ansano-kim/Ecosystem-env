@@ -1,6 +1,7 @@
 index.json
-/arnold/abcproc
-/arnold/agShadingBlocks
+eco.out
+/arnold/abcproc*
+/arnold/agShadingBlocks*
 /lib/alembic*
 /lib/boost*
 /lib/hdf5*
