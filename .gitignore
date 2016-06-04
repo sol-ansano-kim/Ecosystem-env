@@ -8,4 +8,8 @@ eco.out
 /lib/ilmbase*
 /lib/szip*
 /lib/zlib*
+/houdini/HtoA/
+/maya/MtoA/
+/maya/SOuP/
+/shell/arnold/
 /downloads
