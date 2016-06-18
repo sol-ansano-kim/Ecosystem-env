@@ -2,5 +2,5 @@
 export DEPLOY_ROOT=`dirname $0`
 export ECO_SHELL=bash
 export ECO_ROOT=$DEPLOY_ROOT/Ecosystem
-export ECO_ENV=$DEPLOY_ROOT:$DEPLOY_ROOT/arnold:$DEPLOY_ROOT/maya:$DEPLOY_ROOT/lib:$DEPLOY_ROOT/shell
+export ECO_ENV=$DEPLOY_ROOT:$DEPLOY_ROOT/arnold:$DEPLOY_ROOT/maya:$DEPLOY_ROOT/lib:$DEPLOY_ROOT/renderer:$DEPLOY_ROOT/shell
 $ECO_ROOT/bin/eco "$@"
