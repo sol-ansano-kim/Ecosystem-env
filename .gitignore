@@ -2,6 +2,7 @@ index.json
 eco.out
 /arnold/abcproc*
 /arnold/agShadingBlocks*
+/maya/pyexpr*
 /lib/alembic*
 /lib/boost*
 /lib/hdf5*
