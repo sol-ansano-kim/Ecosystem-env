@@ -1,5 +1,7 @@
 index.json
 eco.out
+/arnold/HtoAShaders/
+/arnold/MtoAShaders/
 /arnold/abcproc*
 /arnold/agShadingBlocks*
 /maya/pyexpr*
