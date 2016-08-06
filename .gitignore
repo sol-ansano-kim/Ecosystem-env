@@ -4,6 +4,7 @@ eco.out
 /arnold/MtoAShaders/
 /arnold/abcproc*
 /arnold/agShadingBlocks*
+/arnold/boa*
 /maya/pyexpr*
 /lib/alembic*
 /lib/boost*
