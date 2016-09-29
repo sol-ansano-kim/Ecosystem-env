@@ -12,6 +12,7 @@ eco.out
 /lib/ilmbase*
 /lib/szip*
 /lib/zlib*
+/lib/atlib*
 /houdini/HtoA/
 /maya/MtoA/
 /maya/SOuP/
