@@ -45,6 +45,8 @@ class Delete(Action):
       return True
    
    def execute(self, arg):
+      if not os.path.exists(arg):
+         return
       if self.verbose:
          print("Move '%s' to '%s'" % (arg, self.deletedir))
       if not self.dryRun:
@@ -83,6 +85,8 @@ class Copy(Action):
       return True
    
    def execute(self, arg):
+      if os.path.exists(self.realtodir + "/" + os.path.basename(arg)):
+         return
       if self.verbose:
          print("Copy '%s' to '%s'" % (arg, self.realtodir))
       if not self.dryRun:
