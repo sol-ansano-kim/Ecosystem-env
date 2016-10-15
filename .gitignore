@@ -5,6 +5,7 @@ eco.out
 /arnold/abcproc*
 /arnold/agShadingBlocks*
 /arnold/boa*
+/arnold/alShaders*
 /maya/pyexpr*
 /lib/alembic*
 /lib/boost*
