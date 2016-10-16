@@ -20,5 +20,6 @@ eco.out
 /maya/mayadevkit/
 /renderer/3delight/
 /renderer/arnold/
+/gaffer/gaffer/
 /downloads
 /*.env
