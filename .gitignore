@@ -23,3 +23,5 @@ eco.out
 /gaffer/gaffer/
 /downloads
 /*.env
+.DS_Store
+
