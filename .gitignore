@@ -15,6 +15,7 @@ eco.out
 /lib/szip*
 /lib/zlib*
 /lib/atlib*
+/lib/openvdb*
 /houdini/HtoA/
 /maya/MtoA/
 /maya/SOuP/
