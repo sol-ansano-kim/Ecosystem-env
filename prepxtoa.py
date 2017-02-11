@@ -104,26 +104,30 @@ MtoA = {"bin": [(re.compile(r"^kick(\.exe)?$"), Delete()),
                 (re.compile(r"^maketx(\.exe)?$"), Delete())],
         "scripts": [("arnold", Delete()),
                     ("pykick", Delete())],
-        "shaders": [("*", Copy("../../../../arnold/MtoAShaders/%s/shaders", ["mtoaver"]))],
-        "procedurals": [("*", Copy("../../../../arnold/MtoAShaders/%s/procedurals", ["mtoaver"]))]}
+        "shaders": [("*", Copy("../../../../../arnold/MtoAShaders/%s/%s/shaders", ["mtoaver", "platform"]))],
+        "procedurals": [("*", Copy("../../../../../arnold/MtoAShaders/%s/%s/procedurals", ["mtoaver", "platform"]))]}
 
 HtoA = {"scripts/bin": [(re.compile(r"^(py)?kick(\.exe)?$"), Delete()),
                         (re.compile(r"^(lib)?ai\.(dll|so|dylib)$"), Delete()),
                         (re.compile(r"^maketx(\.exe)?$"), Delete())],
         "scripts/python": [("arnold", Delete())],
-        "arnold": [("plugins/*", Copy("../../../../arnold/HtoAShaders/%s/plugins", ["htoaver"])),
-                   ("procedurals/*", Copy("../../../../arnold/HtoAShaders/%s/procedurals", ["htoaver"]))]}
+        "arnold": [("plugins/*", Copy("../../../../../arnold/HtoAShaders/%s/%s/plugins", ["htoaver", "platform"])),
+                   ("procedurals/*", Copy("../../../../../arnold/HtoAShaders/%s/%s/procedurals", ["htoaver", "platform"]))]}
 
 if __name__ == "__main__":
+   if "-h" in sys.argv or "--help" in sys.argv:
+      print("Usage: python prepxtoa.py (-dr/--dry-run) (-v/--verbose) (-h/--help)")
+      sys.exit(0)
+
    dryRun = ("-dr" in sys.argv or "--dry-run" in sys.argv)
    verbose = ("-v" in sys.argv or "--verbose" in sys.argv)
    
    thisdir = os.path.abspath(os.path.dirname(__file__))
    
-   lst = [("/maya/MtoA/*", "mtoaver", "mayaver", MtoA), 
-          ("/houdini/HtoA/*", "htoaver", "houver", HtoA)]
+   lst = [("/maya/MtoA/*", "mtoaver", "mayaver", "platform", MtoA), 
+          ("/houdini/HtoA/*", "htoaver", "houver", "platform", HtoA)]
    
-   for pattern, key1, key2, aitems in lst:
+   for pattern, key1, key2, key3, aitems in lst:
       d = {}
       for dir1 in glob.glob(thisdir + pattern):
          d[key1] = os.path.basename(dir1)
@@ -131,16 +135,20 @@ if __name__ == "__main__":
             d[key2] = os.path.basename(dir2)
             if not re.match(r"[\d.]+", d[key2]):
                continue
-            for k, v in aitems.iteritems():
-               tgt = dir2 + "/" + k
-               if not os.path.isdir(tgt):
+            for dir3 in glob.glob(dir2 + "/*"):
+               d[key3] = os.path.basename(dir3)
+               if not d[key3] in ("darwin", "windows", "linux"):
                   continue
-               contents = glob.glob(tgt + "/*")
-               for nameOrExp, action in v:
-                  action.setup(dir2, dryRun=dryRun, verbose=verbose, **d)
-                  if type(nameOrExp) in (str, unicode):
-                     for item in glob.glob(tgt + "/" + nameOrExp):
-                        action.execute(item)
-                  else:
-                     for item in filter(lambda x: nameOrExp.match(os.path.basename(x)), contents):
-                        action.execute(item)
+               for k, v in aitems.iteritems():
+                  tgt = dir3 + "/" + k
+                  if not os.path.isdir(tgt):
+                     continue
+                  contents = glob.glob(tgt + "/*")
+                  for nameOrExp, action in v:
+                     action.setup(dir3, dryRun=dryRun, verbose=verbose, **d)
+                     if type(nameOrExp) in (str, unicode):
+                        for item in glob.glob(tgt + "/" + nameOrExp):
+                           action.execute(item)
+                     else:
+                        for item in filter(lambda x: nameOrExp.match(os.path.basename(x)), contents):
+                           action.execute(item)
