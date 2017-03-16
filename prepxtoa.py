@@ -5,31 +5,116 @@ import glob
 import shutil
 
 class Action(object):
-   def __init__(self):
+   def __init__(self, condition=None, invertCondition=False):
       super(Action, self).__init__()
       self.basedir = None
       self.verbose = False
       self.dryRun = False
+      self.condition = condition
+      self.invertCondition = invertCondition
    
    def setup(self, basedir, dryRun=False, verbose=False, **kwargs):
       self.basedir = basedir
       self.verbose = verbose
       self.dryRun = dryRun
-      return True
+      if self.condition:
+         #if verbose:
+         #   print("Evaluate condition: %s(%s)" % ("not " if self.invertCondition else "", self.condition))
+         if self.invertCondition:
+            rv = self.condition.isFalse(basedir)
+         else:
+            rv = self.contition.isTrue(basedir)
+         #if verbose:
+         #   print("=> %s" % rv)
+         return rv
+      else:
+         return True
    
    def execute(self, arg):
       pass
    
 
+class Condition(object):
+   def __init__(self, **kwargs):
+      super(Condition, self).__init__()
+      self.args = kwargs
+
+   def isTrue(self, basedir):
+      return False
+
+   def isFalse(self, basedir):
+      return not self.isTrue(basedir)
+
+   def __str__(self):
+      return ""
+
+
+class FileExists(Condition):
+   PLAIN = 0
+   GLOB_PATTERN = 1
+   RE_PATTERN = 2
+
+   def __init__(self, path, mode=0, **kwargs):
+      super(FileExists, self).__init__(**kwargs)
+      self.path = path
+      self.mode = mode
+      if self.mode == self.RE_PATTERN:
+         self.exp = re.compile(self.path)
+
+   def isTrue(self, basedir):
+      d = basedir
+      sd = self.args.get("subdir", None)
+      if sd:
+         d += "/" + sd
+      if self.mode == self.PLAIN:
+         return os.path.isfile(d + "/" + self.path)
+      elif self.mode == self.GLOB_PATTERN:
+         return (len(glob.glob(d + "/" + self.path)) > 0)
+      elif self.mode == self.RE_PATTERN:
+         items = filter(lambda x: self.exp.match(os.path.basename(x)) is not None, glob.glob(d + "/*"))
+         return (len(items) > 0)
+      else:
+         return False
+
+   def __str__(self):
+      return "exists(%s)" % self.path
+
+
+class And(Condition):
+   def __init__(self, c0, c1, **kwargs):
+      super(Condition, self).__init__(**kwargs)
+      self.c0 = c0
+      self.c1 = c1
+
+   def isTrue(self, basedir):
+      return (self.c0.isTrue(basedir) and self.c1.isTrue(basedir))
+
+   def __str__(self):
+      return "%s and %s" % (self.c0, self.c1)
+
+class Or(Condition):
+   def __init__(self, c0, c1, **kwargs):
+      super(Condition, c0, c1).__init__(**kwargs)
+      self.c0 = c0
+      self.c1 = c1
+
+   def isTrue(self, basedir):
+      return (self.c0.isTrue(basedir) or self.c1.isTrue(basedir))
+
+   def __str__(self):
+      return "%s or %s" % (self.c0, self.c1)
+
+
 class Delete(Action):
    CreatedDirs = set()
    
-   def __init__(self):
-      super(Delete, self).__init__()
+   def __init__(self, condition=None, invertCondition=False):
+      super(Delete, self).__init__(condition, invertCondition)
       self.deletedir = None
    
    def setup(self, basedir, dryRun=False, verbose=False, **kwargs):
-      super(Delete, self).setup(basedir, dryRun=dryRun, verbose=verbose, **kwargs)
+      if not super(Delete, self).setup(basedir, dryRun=dryRun, verbose=verbose, **kwargs):
+         return False
       self.deletedir = basedir + "/_deleted"
       if not os.path.isdir(self.deletedir):
          if verbose:
@@ -56,14 +141,15 @@ class Delete(Action):
 class Copy(Action):
    CreatedDirs = set()
    
-   def __init__(self, todir, repl=[]):
-      super(Copy, self).__init__()
+   def __init__(self, todir, repl=[], condition=None, invertCondition=False):
+      super(Copy, self).__init__(condition, invertCondition)
       self.todir = todir
       self.realtodir = None
       self.repl = repl
    
    def setup(self, basedir, dryRun=False, verbose=False, **kwargs):
-      super(Copy, self).setup(basedir, dryRun=dryRun, verbose=verbose, **kwargs)
+      if not super(Copy, self).setup(basedir, dryRun=dryRun, verbose=verbose, **kwargs):
+         return False
       if not os.path.isabs(self.todir):
          self.realtodir = basedir + "/" + self.todir
       else:
@@ -99,9 +185,12 @@ class Copy(Action):
             if self.verbose:
                print("FAILED: %s" % e)
 
+KeepMakeTxCond = And(FileExists(r"^.*OpenColorIO.*\.(so|dll|dylib).*$", FileExists.RE_PATTERN, subdir="bin"),
+                     FileExists(r"^.*synColor.*\.(so|dll|dylib).*$", FileExists.RE_PATTERN, subdir="bin"))
+
 MtoA = {"bin": [(re.compile(r"^kick(\.exe)?$"), Delete()),
                 (re.compile(r"^(lib)?ai\.(dll|so|dylib)$"), Delete()),
-                (re.compile(r"^maketx(\.exe)?$"), Delete())],
+                (re.compile(r"^maketx(\.exe)?$"), Delete(condition=KeepMakeTxCond, invertCondition=True))],
         "scripts": [("arnold", Delete()),
                     ("pykick", Delete())],
         "shaders": [("*", Copy("../../../../../arnold/MtoAShaders/%s/%s/shaders", ["mtoaver", "platform"]))],
@@ -145,7 +234,8 @@ if __name__ == "__main__":
                      continue
                   contents = glob.glob(tgt + "/*")
                   for nameOrExp, action in v:
-                     action.setup(dir3, dryRun=dryRun, verbose=verbose, **d)
+                     if not action.setup(dir3, dryRun=dryRun, verbose=verbose, **d):
+                        continue
                      if type(nameOrExp) in (str, unicode):
                         for item in glob.glob(tgt + "/" + nameOrExp):
                            action.execute(item)
