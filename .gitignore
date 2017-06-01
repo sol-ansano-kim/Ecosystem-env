@@ -18,6 +18,7 @@ eco.out
 /lib/atlib*
 /lib/openvdb*
 /lib/partio*
+/lib/OpenImageIO*
 /houdini/HtoA/
 /maya/MtoA/
 /maya/SOuP/
