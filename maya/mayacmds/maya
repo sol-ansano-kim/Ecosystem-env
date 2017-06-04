@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+if [ -z $DYLD_LIBRARY_PATH ] && [ ! -z $_DYLD_LIBRARY_PATH ]; then
+   export DYLD_LIBRARY_PATH=$_DYLD_LIBRARY_PATH
+fi
+$MAYA_EXEC "$@"
