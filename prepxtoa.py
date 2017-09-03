@@ -189,6 +189,9 @@ KeepMakeTxCond = And(FileExists(r"^.*OpenColorIO.*\.(so|dll|dylib).*$", FileExis
                      FileExists(r"^.*synColor.*\.(so|dll|dylib).*$", FileExists.RE_PATTERN, subdir="bin"))
 
 MtoA = {"bin": [(re.compile(r"^kick(\.exe)?$"), Delete()),
+                (re.compile(r"^osl(c|info)(\.exe)?$"), Delete()),
+                # (re.compile(r"^(lib)?adlmint\.(dll|so|dylib)$"), Delete()),
+                # (re.compile(r"^(lib)?AdClmHub\.(dll|so|dylib)$"), Delete()),
                 (re.compile(r"^(lib)?ai\.(dll|so|dylib)$"), Delete()),
                 (re.compile(r"^maketx(\.exe)?$"), Delete(condition=KeepMakeTxCond, invertCondition=True))],
         "scripts": [("arnold", Delete()),
@@ -197,6 +200,7 @@ MtoA = {"bin": [(re.compile(r"^kick(\.exe)?$"), Delete()),
         "procedurals": [("*", Copy("../../../../../arnold/MtoAShaders/%s/%s/procedurals", ["mtoaver", "platform"]))]}
 
 HtoA = {"scripts/bin": [(re.compile(r"^(py)?kick(\.exe)?$"), Delete()),
+                        (re.compile(r"^osl(c|info)(\.exe)?$"), Delete()),
                         (re.compile(r"^(lib)?ai\.(dll|so|dylib)$"), Delete()),
                         (re.compile(r"^maketx(\.exe)?$"), Delete())],
         "scripts/python": [("arnold", Delete())],
