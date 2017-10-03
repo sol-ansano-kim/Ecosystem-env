@@ -27,6 +27,7 @@ eco.out
 /maya/mgear*
 /maya/aTools*
 /maya/StudioLibrary*
+/maya/scriptedTranslators*
 /renderer/3delight/
 /renderer/arnold/
 /gaffer/gaffer/
