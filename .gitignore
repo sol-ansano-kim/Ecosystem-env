@@ -8,6 +8,7 @@ eco.out
 /arnold/alShaders*
 /arnold/zoic*
 /arnold/Obq_Shaders*
+/arnold/pyproc*
 /maya/pyexpr*
 /lib/alembic*
 /lib/boost*
