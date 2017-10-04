@@ -190,10 +190,11 @@ KeepMakeTxCond = And(FileExists(r"^.*OpenColorIO.*\.(so|dll|dylib).*$", FileExis
 
 MtoA = {"bin": [(re.compile(r"^kick(\.exe)?$"), Delete()),
                 (re.compile(r"^osl(c|info)(\.exe)?$"), Delete()),
-                # (re.compile(r"^(lib)?adlmint\.(dll|so|dylib)$"), Delete()),
-                # (re.compile(r"^(lib)?AdClmHub\.(dll|so|dylib)$"), Delete()),
+                (re.compile(r"^maketx(\.exe)?$"), Delete(condition=KeepMakeTxCond, invertCondition=True)),
                 (re.compile(r"^(lib)?ai\.(dll|so|dylib)$"), Delete()),
-                (re.compile(r"^maketx(\.exe)?$"), Delete(condition=KeepMakeTxCond, invertCondition=True))],
+                (re.compile(r"^(lib)?AdClmHub\.(dll|so|dylib)$"), Delete()),
+                (re.compile(r"^(lib)?adlmint\.(dll|so|dylib)$"), Delete()),
+                ("ProductInformation.pit", Delete())],
         "scripts": [("arnold", Delete()),
                     ("pykick", Delete())],
         "shaders": [("*", Copy("../../../../../arnold/MtoAShaders/%s/%s/shaders", ["mtoaver", "platform"]))],
@@ -201,13 +202,15 @@ MtoA = {"bin": [(re.compile(r"^kick(\.exe)?$"), Delete()),
 
 HtoA = {"scripts/bin": [(re.compile(r"^(py)?kick(\.exe)?$"), Delete()),
                         (re.compile(r"^osl(c|info)(\.exe)?$"), Delete()),
+                        (re.compile(r"^maketx(\.exe)?$"), Delete()),
                         (re.compile(r"^(lib)?ai\.(dll|so|dylib)$"), Delete()),
-                        (re.compile(r"^maketx(\.exe)?$"), Delete())],
+                        (re.compile(r"^(lib)?adlmint\.(dll|so|dylib)$"), Delete()),
+                        ("ProductInformation.pit", Delete())],
         "scripts/python": [("arnold", Delete())],
         "arnold": [("plugins/*", Copy("../../../../../arnold/HtoAShaders/%s/%s/plugins", ["htoaver", "platform"])),
                    ("procedurals/*", Copy("../../../../../arnold/HtoAShaders/%s/%s/procedurals", ["htoaver", "platform"]))]}
 
-Arnold = {"bin": [(re.compile(r"(lib)?adlmint\.(dll|so|dylib)$"), Delete()),
+Arnold = {"bin": [(re.compile(r"^(lib)?adlmint\.(dll|so|dylib)$"), Delete()),
                   ("ProductInformation.pit", Delete())]}
 
 if __name__ == "__main__":
