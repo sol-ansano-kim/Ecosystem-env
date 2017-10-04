@@ -12,7 +12,7 @@ class Action(object):
       self.dryRun = False
       self.condition = condition
       self.invertCondition = invertCondition
-   
+
    def setup(self, basedir, dryRun=False, verbose=False, **kwargs):
       self.basedir = basedir
       self.verbose = verbose
@@ -29,10 +29,10 @@ class Action(object):
          return rv
       else:
          return True
-   
+
    def execute(self, arg):
       pass
-   
+
 
 class Condition(object):
    def __init__(self, **kwargs):
@@ -107,11 +107,11 @@ class Or(Condition):
 
 class Delete(Action):
    CreatedDirs = set()
-   
+
    def __init__(self, condition=None, invertCondition=False):
       super(Delete, self).__init__(condition, invertCondition)
       self.deletedir = None
-   
+
    def setup(self, basedir, dryRun=False, verbose=False, **kwargs):
       if not super(Delete, self).setup(basedir, dryRun=dryRun, verbose=verbose, **kwargs):
          return False
@@ -128,7 +128,7 @@ class Delete(Action):
                print("ERROR: %s" % e)
                return False
       return True
-   
+
    def execute(self, arg):
       if not os.path.exists(arg):
          return
@@ -136,17 +136,17 @@ class Delete(Action):
          print("Move '%s' to '%s'" % (arg, self.deletedir))
       if not self.dryRun:
          shutil.move(arg, self.deletedir)
-   
+
 
 class Copy(Action):
    CreatedDirs = set()
-   
+
    def __init__(self, todir, repl=[], condition=None, invertCondition=False):
       super(Copy, self).__init__(condition, invertCondition)
       self.todir = todir
       self.realtodir = None
       self.repl = repl
-   
+
    def setup(self, basedir, dryRun=False, verbose=False, **kwargs):
       if not super(Copy, self).setup(basedir, dryRun=dryRun, verbose=verbose, **kwargs):
          return False
@@ -169,7 +169,7 @@ class Copy(Action):
                print("ERROR: %s" % e)
                return False
       return True
-   
+
    def execute(self, arg):
       if os.path.exists(self.realtodir + "/" + os.path.basename(arg)):
          return
@@ -207,6 +207,9 @@ HtoA = {"scripts/bin": [(re.compile(r"^(py)?kick(\.exe)?$"), Delete()),
         "arnold": [("plugins/*", Copy("../../../../../arnold/HtoAShaders/%s/%s/plugins", ["htoaver", "platform"])),
                    ("procedurals/*", Copy("../../../../../arnold/HtoAShaders/%s/%s/procedurals", ["htoaver", "platform"]))]}
 
+Arnold = {"bin": [(re.compile(r"(lib)?adlmint\.(dll|so|dylib)$"), Delete()),
+                  ("ProductInformation.pit", Delete())]}
+
 if __name__ == "__main__":
    if "-h" in sys.argv or "--help" in sys.argv:
       print("Usage: python prepxtoa.py (-dr/--dry-run) (-v/--verbose) (-h/--help)")
@@ -214,17 +217,56 @@ if __name__ == "__main__":
 
    dryRun = ("-dr" in sys.argv or "--dry-run" in sys.argv)
    verbose = ("-v" in sys.argv or "--verbose" in sys.argv)
-   
+
    thisdir = os.path.abspath(os.path.dirname(__file__))
-   
-   lst = [("/maya/MtoA/*", "mtoaver", "mayaver", "platform", MtoA), 
-          ("/houdini/HtoA/*", "htoaver", "houver", "platform", HtoA)]
-   
-   for pattern, key1, key2, key3, aitems in lst:
-      d = {}
-      for dir1 in glob.glob(thisdir + pattern):
-         d[key1] = os.path.basename(dir1)
-         for dir2 in glob.glob(dir1 + "/*"):
+
+   verpat = re.compile(r"[\d.]+")
+   platpat = re.compile(r"^(darwin|windows|linux)$")
+
+   lst = [("/maya/MtoA/*", [("mtoaver", None), ("mayaver", verpat), ("platform", platpat)], MtoA),
+          ("/houdini/HtoA/*", [("htoaver", None), ("houver", verpat), ("platform", platpat)], HtoA),
+          ("/renderer/arnold/*", [("arniver", None), ("platform", platpat)], Arnold)]
+
+   for pattern, keys, aitems in lst:
+      if len(keys) == 0:
+         continue
+
+      for topdir in glob.glob(thisdir + pattern):
+         lst = [(topdir, {})]
+         for i in xrange(len(keys)):
+            key, pat = keys[i]
+            islast = (i + 1 == len(keys))
+            newlst = []
+            for curdir, kwargs in lst:
+               val = os.path.basename(curdir)
+               if pat is not None and not pat.match(val):
+                  continue
+               newkwargs = kwargs.copy()
+               newkwargs[key] = val
+               if islast:
+                  newlst.append((curdir, newkwargs))
+               else:
+                  newlst += map(lambda x: (x, newkwargs.copy()), glob.glob(curdir + "/*"))
+            lst = newlst
+
+         for k, v in aitems.iteritems():
+            for folder, kwargs in lst:
+               tgt = folder + "/" + k
+               if not os.path.isdir(tgt):
+                  continue
+               contents = glob.glob(tgt + "/*")
+               for nameOrExp, action in v:
+                  if not action.setup(folder, dryRun=dryRun, verbose=verbose, **kwargs):
+                     continue
+                  if type(nameOrExp) in (str, unicode):
+                     for item in glob.glob(tgt + "/" + nameOrExp):
+                        action.execute(item)
+                  else:
+                     for item in filter(lambda x: nameOrExp.match(os.path.basename(x)), contents):
+                        action.execute(item)
+         """
+         d[key1] = os.path.basename(topdir)
+         for dir2 in glob.glob(topdir + "/*"):
             d[key2] = os.path.basename(dir2)
             if not re.match(r"[\d.]+", d[key2]):
                continue
@@ -246,3 +288,4 @@ if __name__ == "__main__":
                      else:
                         for item in filter(lambda x: nameOrExp.match(os.path.basename(x)), contents):
                            action.execute(item)
+         """
